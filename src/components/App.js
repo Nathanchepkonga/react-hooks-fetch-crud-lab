@@ -1,16 +1,40 @@
-import React, { useState } from "react";
-import AdminNavBar from "./AdminNavBar";
-import QuestionForm from "./QuestionForm";
-import QuestionList from "./QuestionList";
+import React, { useState, useEffect } from "react";
+import TaskList from "./TaskList";
+import TaskForm from "./TaskForm";
 
 function App() {
-  const [page, setPage] = useState("List");
+  const [tasks, setTasks] = useState([]);
+
+  useEffect(() => {
+    fetch("http://localhost:3000/tasks")
+      .then((response) => response.json())
+      .then((data) => setTasks(data));
+  }, []);
+
+  const addTask = (newTask) => {
+    fetch("http://localhost:3000/tasks", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newTask),
+    })
+      .then((response) => response.json())
+      .then((data) => setTasks([...tasks, data]));
+  };
+
+  const deleteTask = (id) => {
+    fetch(`http://localhost:3000/tasks/${id}`, {
+      method: "DELETE",
+    }).then(() => setTasks(tasks.filter((task) => task.id !== id)));
+  };
 
   return (
-    <main>
-      <AdminNavBar onChangePage={setPage} />
-      {page === "Form" ? <QuestionForm /> : <QuestionList />}
-    </main>
+    <div className="App">
+      <h1>Task Manager</h1>
+      <TaskForm addTask={addTask} />
+      <TaskList tasks={tasks} deleteTask={deleteTask} />
+    </div>
   );
 }
 
